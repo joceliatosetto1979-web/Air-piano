@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Piano Pro - Gestos e Pitch</title>
+    <title>Air Piano Pro com Sustentação</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <style>
@@ -24,7 +24,6 @@
         }
         .header { margin: 10px; text-align: center; }
         
-        /* Câmera visível */
         #video-container {
             position: relative;
             width: 320px;
@@ -36,7 +35,6 @@
         }
         video { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
 
-        /* Painel de Informações */
         .info-panel {
             display: flex;
             gap: 20px;
@@ -48,11 +46,9 @@
         .stat { display: flex; flex-direction: column; align-items: center; }
         .stat-val { font-size: 24px; font-weight: bold; color: var(--accent); }
 
-        /* Controle de Pitch */
         .pitch-control { margin: 10px; display: flex; align-items: center; gap: 10px; }
         input[type=range] { cursor: pointer; width: 150px; }
 
-        /* Teclado Visual em baixo */
         .piano-bar {
             position: fixed;
             bottom: 0;
@@ -67,7 +63,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
             transition: all 0.1s;
             text-transform: uppercase;
@@ -87,7 +83,7 @@
             border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 10px;
             box-shadow: 0 4px 15px rgba(80, 227, 194, 0.4);
         }
     </style>
@@ -144,9 +140,10 @@
 
         let audioCtx;
         let currentOscillator = null;
+        let currentGain = null;
         let lastFingerCount = -1;
+        let lastHandZ = null;
 
-        // Mapeamento: 1 dedo = Dó, etc.
         const noteMap = {
             1: { name: "Dó", freq: 261.63 },
             2: { name: "Ré", freq: 293.66 },
@@ -173,39 +170,73 @@
             }
         }
 
-        function playSound(fingers) {
-            if (!audioCtx || fingers === lastFingerCount) return;
-            lastFingerCount = fingers;
+        function playSound(fingers, landmarks) {
+            if (!audioCtx) return;
 
-            if (currentOscillator) {
-                currentOscillator.stop();
-                currentOscillator.disconnect();
-                currentOscillator = null;
+            let isSlap = false;
+
+            // Verifica o movimento no eixo Z (aproximação e afastamento para "tapa")
+            if (landmarks && landmarks.length > 0) {
+                const currentZ = landmarks[0].z; // Posição Z do pulso ou base da mão
+                if (lastHandZ !== null && Math.abs(currentZ - lastHandZ) > 0.08) {
+                    isSlap = true;
+                }
+                lastHandZ = currentZ;
             }
 
-            // 0 dedos = Silêncio
-            if (fingers === 0 || !noteMap[fingers]) {
+            // Se for o mesmo número de dedos e não for o movimento de tapa, ignora
+            if (fingers === lastFingerCount && !isSlap) return;
+
+            // Tratamento para 0 dedos (Silêncio com fade-out)
+            if (fingers === 0) {
+                lastFingerCount = 0;
                 updateUI(0);
+                if (currentGain) {
+                    currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6); // Fade-out suave
+                    setTimeout(() => {
+                        if (currentOscillator) {
+                            currentOscillator.stop();
+                            currentOscillator.disconnect();
+                            currentOscillator = null;
+                            currentGain = null;
+                        }
+                    }, 600);
+                }
                 return;
             }
 
+            if (!noteMap[fingers]) return;
+
+            // Se uma nota já está tocando, faz a transição (fade rápido para não dar estalos)
+            if (currentOscillator) {
+                if (currentGain) {
+                    currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+                }
+                let oldOsc = currentOscillator;
+                setTimeout(() => {
+                    oldOsc.stop();
+                    oldOsc.disconnect();
+                }, 150);
+            }
+
+            lastFingerCount = fingers;
             updateUI(fingers);
 
             const pitchFactor = parseFloat(pitchSlider.value);
+            
             currentOscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            currentGain = audioCtx.createGain();
 
-            currentOscillator.type = 'triangle'; // Som um pouco mais encorpado
+            currentOscillator.type = 'triangle'; 
             currentOscillator.frequency.value = noteMap[fingers].freq * pitchFactor;
 
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+            currentGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            currentGain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.08); // Fade-in para soar natural
 
-            currentOscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            currentOscillator.connect(currentGain);
+            currentGain.connect(audioCtx.destination);
 
             currentOscillator.start();
-            currentOscillator.stop(audioCtx.currentTime + 0.8);
         }
 
         function countFingers(landmarks) {
@@ -216,7 +247,7 @@
             for (let i = 0; i < tips.length; i++) {
                 if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
             }
-            // Dedão (ajustado para detecção lateral básica)
+            
             if (Math.abs(landmarks[4].x - landmarks[2].x) > 0.05) {
                 if (landmarks[4].y < landmarks[3].y) count++;
             }
@@ -233,18 +264,24 @@
 
         hands.onResults((results) => {
             let total = 0;
-            if (results.multiHandLandmarks) {
+            let firstHand = null;
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                firstHand = results.multiHandLandmarks[0];
                 for (const landmarks of results.multiHandLandmarks) {
                     total += countFingers(landmarks);
                 }
+                total = Math.min(total, 10);
+                playSound(total, firstHand);
+            } else {
+                playSound(0, null);
             }
-            playSound(Math.min(total, 10));
         });
 
         startBtn.addEventListener('click', () => {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             startBtn.style.display = 'none';
             const camera = new Camera(videoElement, {
+                onFrameRate: 30,
                 onFrame: async () => { await hands.send({image: videoElement}); },
                 width: 320, height: 240
             });
@@ -252,4 +289,5 @@
         });
     </script>
 </body>
-</html>
+        </html>
+        
