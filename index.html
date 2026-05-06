@@ -1,12 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Piano Pro com Sustentação</title>
+    <title>Air Piano Pro - Completo</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --accent: #50e3c2;
@@ -21,7 +21,7 @@
             flex-direction: column;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
+            overflow-y: auto;
         }
         .header { margin: 10px; text-align: center; }
         
@@ -49,6 +49,20 @@
 
         .pitch-control { margin: 10px; display: flex; align-items: center; gap: 10px; }
         input[type=range] { cursor: pointer; width: 150px; }
+
+        .info-box {
+            background: rgba(80, 227, 194, 0.15);
+            border: 1px solid var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 290px;
+            margin-bottom: 80px;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .info-box h3 { margin: 0 0 5px 0; color: var(--accent); font-size: 14px; }
+        .info-box ul { margin: 0; padding-left: 15px; }
 
         .piano-bar {
             position: fixed;
@@ -84,7 +98,7 @@
             border-radius: 30px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(80, 227, 194, 0.4);
         }
     </style>
@@ -116,6 +130,16 @@
         <span>Agudo</span>
     </div>
 
+    <div class="info-box">
+        <h3>Como Jogar</h3>
+        <ul>
+            <li><strong>Tocar Nota:</strong> Mostre de 1 a 10 dedos na câmera.</li>
+            <li><strong>Sustentação:</strong> A nota se mantém tocando se você abaixar a mão.</li>
+            <li><strong>Repetir Nota:</strong> Abra a boca em frente à câmera para re-atacar o som (sem interromper o anterior).</li>
+            <li><strong>Silenciar:</strong> Mude para 0 dedos para diminuir o som.</li>
+        </ul>
+    </div>
+
     <button id="startBtn">INICIAR CÂMERA</button>
 
     <div class="piano-bar" id="pianoBar">
@@ -143,7 +167,7 @@
         let currentOscillator = null;
         let currentGain = null;
         let lastFingerCount = -1;
-        let lastHandZ = null;
+        let lastMouthOpen = false;
 
         const noteMap = {
             1: { name: "Dó", freq: 261.63 },
@@ -171,57 +195,15 @@
             }
         }
 
-        function playSound(fingers, landmarks) {
-            if (!audioCtx) return;
+        function playNote(fingers) {
+            if (!audioCtx || !noteMap[fingers]) return;
 
-            let isSlap = false;
-
-            // Verifica o movimento no eixo Z (aproximação e afastamento para "tapa")
-            if (landmarks && landmarks.length > 0) {
-                const currentZ = landmarks[0].z; // Posição Z do pulso ou base da mão
-                if (lastHandZ !== null && Math.abs(currentZ - lastHandZ) > 0.08) {
-                    isSlap = true;
-                }
-                lastHandZ = currentZ;
-            }
-
-            // Se for o mesmo número de dedos e não for o movimento de tapa, ignora
-            if (fingers === lastFingerCount && !isSlap) return;
-
-            // Tratamento para 0 dedos (Silêncio com fade-out)
-            if (fingers === 0) {
-                lastFingerCount = 0;
-                updateUI(0);
-                if (currentGain) {
-                    currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6); // Fade-out suave
-                    setTimeout(() => {
-                        if (currentOscillator) {
-                            currentOscillator.stop();
-                            currentOscillator.disconnect();
-                            currentOscillator = null;
-                            currentGain = null;
-                        }
-                    }, 600);
-                }
-                return;
-            }
-
-            if (!noteMap[fingers]) return;
-
-            // Se uma nota já está tocando, faz a transição (fade rápido para não dar estalos)
             if (currentOscillator) {
-                if (currentGain) {
-                    currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-                }
-                let oldOsc = currentOscillator;
-                setTimeout(() => {
-                    oldOsc.stop();
-                    oldOsc.disconnect();
-                }, 150);
+                try {
+                    currentOscillator.stop();
+                    currentOscillator.disconnect();
+                } catch(e) {}
             }
-
-            lastFingerCount = fingers;
-            updateUI(fingers);
 
             const pitchFactor = parseFloat(pitchSlider.value);
             
@@ -232,12 +214,29 @@
             currentOscillator.frequency.value = noteMap[fingers].freq * pitchFactor;
 
             currentGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            currentGain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.08); // Fade-in para soar natural
+            currentGain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 0.08); // Fade-in
 
             currentOscillator.connect(currentGain);
             currentGain.connect(audioCtx.destination);
 
             currentOscillator.start();
+            lastFingerCount = fingers;
+            updateUI(fingers);
+        }
+
+        function stopSound() {
+            if (currentGain) {
+                currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6); // Fade-out suave
+                let oldOsc = currentOscillator;
+                setTimeout(() => {
+                    if (oldOsc) {
+                        oldOsc.stop();
+                        oldOsc.disconnect();
+                    }
+                }, 600);
+            }
+            currentOscillator = null;
+            currentGain = null;
         }
 
         function countFingers(landmarks) {
@@ -249,46 +248,94 @@
                 if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
             }
             
-            if (Math.abs(landmarks[4].x - landmarks[2].x) > 0.05) {
-                if (landmarks[4].y < landmarks[3].y) count++;
+            const thumbTip = landmarks[4];
+            const thumbBase = landmarks[2];
+            
+            // Verificação rigorosa do polegar
+            if (Math.abs(thumbTip.x - thumbBase.x) > 0.06) {
+                if (thumbTip.y < landmarks[3].y) {
+                    count++;
+                }
             }
             return count;
         }
 
-        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        // --- Modelos MediaPipe ---
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        
         hands.setOptions({
-            maxNumHands: 2,
+            maxNumHands: 1,
             modelComplexity: 0,
             minDetectionConfidence: 0.6,
             minTrackingConfidence: 0.6
         });
 
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+        
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: false,
+            modelComplexity: 0
+        });
+
+        // Leitura de Mãos
         hands.onResults((results) => {
             let total = 0;
-            let firstHand = null;
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                firstHand = results.multiHandLandmarks[0];
                 for (const landmarks of results.multiHandLandmarks) {
                     total += countFingers(landmarks);
                 }
                 total = Math.min(total, 10);
-                playSound(total, firstHand);
+                
+                if (total !== lastFingerCount && total > 0) {
+                    playNote(total);
+                }
             } else {
-                playSound(0, null);
+                if (lastFingerCount !== 0) {
+                    // Mantém a nota, sem interromper imediatamente
+                }
+            }
+        });
+
+        // Leitura de Rosto
+        faceMesh.onResults((results) => {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const face = results.multiFaceLandmarks[0];
+                const topLip = face[13];
+                const bottomLip = face[14];
+                const dist = Math.abs(topLip.y - bottomLip.y);
+                
+                const isNowOpen = dist > 0.045;
+                
+                // Gatilho: se mudou de fechada para aberta
+                if (isNowOpen && !lastMouthOpen) {
+                    if (lastFingerCount > 0) {
+                        playNote(lastFingerCount);
+                    }
+                }
+                lastMouthOpen = isNowOpen;
             }
         });
 
         startBtn.addEventListener('click', () => {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             startBtn.style.display = 'none';
+            
             const camera = new Camera(videoElement, {
                 onFrameRate: 30,
-                onFrame: async () => { await hands.send({image: videoElement}); },
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                    await faceMesh.send({image: videoElement});
+                },
                 width: 320, height: 240
             });
             camera.start();
         });
     </script>
 </body>
-            </html>
+    </html>
     
