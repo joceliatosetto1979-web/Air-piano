@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Piano Pro - Seus dedos peoduzem sons</title>
+    <title>Air piano - Seus dedos produzem sons</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -17,10 +17,7 @@
             --danger: #ff5252;
         }
         
-        * {
-            box-sizing: border-box;
-            transition: all 0.2s ease-in-out;
-        }
+        * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
 
         body {
             margin: 0;
@@ -31,20 +28,15 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding-bottom: 100px; /* Espaço para o piano */
+            padding-bottom: 100px;
             overflow-x: hidden;
         }
         
-        .header {
-            margin-top: 20px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
+        .header { margin: 25px 10px 15px; text-align: center; }
         .header h2 {
             margin: 0;
-            font-size: 26px;
-            letter-spacing: 1px;
+            font-size: 24px;
+            letter-spacing: 0.5px;
             background: linear-gradient(45deg, var(--accent), #4a90e2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -60,77 +52,42 @@
             overflow: hidden;
             background: #000;
             box-shadow: 0 10px 30px var(--accent-glow);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
-        video {
-            transform: scaleX(-1);
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        video { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
 
         .info-panel {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin: 10px 0;
             background: var(--surface);
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
         
-        .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 65px;
-        }
-        
-        .stat span {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .stat-val {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--accent);
-            text-shadow: 0 0 8px var(--accent-glow);
-        }
+        .stat { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+        .stat span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .stat-val { font-size: 18px; font-weight: 700; color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
 
         .controls-container {
             display: flex;
             flex-direction: column;
             gap: 14px;
             background: var(--surface);
-            padding: 16px 24px;
+            padding: 16px 20px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
             width: 290px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        .pitch-control {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        
-        .pitch-control span:first-child {
-            font-size: 13px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+        .slider-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .slider-group span { font-size: 12px; color: var(--text-muted); }
 
         input[type=range] {
             -webkit-appearance: none;
-            width: 140px;
+            width: 130px;
             height: 6px;
             border-radius: 5px;
             background: rgba(255, 255, 255, 0.1);
@@ -139,43 +96,31 @@
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
             width: 16px;
             height: 16px;
             border-radius: 50%;
             background: var(--accent);
-            cursor: pointer;
             box-shadow: 0 0 8px var(--accent);
+            cursor: pointer;
         }
 
         .info-box {
             background: rgba(80, 227, 194, 0.06);
-            border: 1px solid rgba(80, 227, 194, 0.3);
-            padding: 14px 18px;
+            border: 1px solid rgba(80, 227, 194, 0.2);
+            padding: 15px;
             border-radius: 16px;
-            font-size: 12px;
-            max-width: 290px;
-            margin-bottom: 20px;
-            text-align: left;
-            line-height: 1.5;
+            font-size: 12.5px;
+            max-width: 300px;
+            margin-bottom: 90px;
+            line-height: 1.4;
         }
         
-        .info-box h3 {
-            margin: 0 0 6px 0;
-            color: var(--accent);
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .info-box ul {
-            margin: 0;
-            padding-left: 14px;
-            color: #b0c0d0;
-        }
+        .info-box h3 { margin: 0 0 8px 0; color: var(--accent); font-size: 14px; text-transform: uppercase; }
+        .info-box ul { margin: 0; padding-left: 18px; color: #b0c0d0; }
+        .info-box li { margin-bottom: 6px; }
 
         button#startBtn {
-            padding: 14px 36px;
+            padding: 14px 40px;
             font-size: 16px;
             background: linear-gradient(135deg, var(--accent), #4a90e2);
             border: none;
@@ -183,14 +128,8 @@
             font-weight: 700;
             color: #0d0f12;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             box-shadow: 0 8px 24px var(--accent-glow);
-            letter-spacing: 0.5px;
-        }
-
-        button#startBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(80, 227, 194, 0.5);
         }
 
         .piano-bar {
@@ -198,41 +137,34 @@
             bottom: 0;
             width: 100%;
             display: flex;
-            height: 72px;
-            background: #15181e;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+            height: 75px;
+            background: #111419;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.5);
         }
         
         .key {
             flex: 1;
             border-right: 1px solid rgba(255, 255, 255, 0.03);
-            border-top: 2px solid transparent;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10px;
             color: var(--text-muted);
             text-transform: uppercase;
-            background: #111419;
-            cursor: default;
         }
         
         .key.active {
             background-color: var(--accent);
-            color: #0d0f12;
+            color: #000;
             font-weight: 800;
-            transform: translateY(-2px);
-            border-top: 2px solid #ffffff;
-            box-shadow: 0 -6px 12px rgba(80, 227, 194, 0.3);
+            box-shadow: 0 -5px 15px var(--accent-glow);
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Air Piano Pro</h2>
+        <h2>Air piano - Seus dedos produzem sons</h2>
     </div>
 
     <div id="video-container">
@@ -250,30 +182,29 @@
         </div>
         <div class="stat">
             <span>Boca</span>
-            <span id="mouthStatus" class="stat-val" style="color: #ff5252; font-size: 14px;">Fechada</span>
+            <span id="mouthStatus" class="stat-val" style="color: #ff5252;">Fechada</span>
         </div>
     </div>
 
     <div class="controls-container">
-        <div class="pitch-control">
-            <span>Afinação (Grave / Agudo)</span>
+        <div class="slider-group">
+            <span>Afinação</span>
             <input type="range" id="pitchSlider" min="0.5" max="2.0" step="0.1" value="1.0">
         </div>
-        
-        <div class="pitch-control">
+        <div class="slider-group">
             <span>Volume Máx</span>
             <input type="range" id="volumeSlider" min="0" max="300" step="10" value="100">
-            <span id="volumeVal" style="color: var(--accent); font-weight: bold; font-size: 14px;">100%</span>
+            <span id="volumeVal" style="color: var(--accent); font-weight: bold; width: 45px;">100%</span>
         </div>
     </div>
 
     <div class="info-box">
         <h3>Como Jogar</h3>
         <ul>
-            <li><strong>Tocar Nota:</strong> Mostre de 1 a 10 dedos na câmera.</li>
-            <li><strong>Volume e Som:</strong> Abra a boca para ligar o som e feche para desligar o som.</li>
-            <li><strong>Mudar Nota:</strong> Com a boca aberta, mude os dedos para alterar a nota.</li>
-            <li><strong>Silenciar:</strong> Feche a boca para parar o som imediatamente.</li>
+            <li><strong>Tocar Nota:</strong> Mostre de 1 a 10 dedos (use as duas mãos).</li>
+            <li><strong>Som:</strong> Abra a boca para tocar o som e feche para parar.</li>
+            <li><strong>Volume:</strong> Quanto mais você abrir a boca, mais alto o som fica.</li>
+            <li><strong>Mudar Nota:</strong> Mude os dedos com a boca aberta para tocar outras notas.</li>
         </ul>
     </div>
 
@@ -303,69 +234,42 @@
         const startBtn = document.getElementById('startBtn');
         const keys = document.querySelectorAll('.key');
 
-        let audioCtx;
-        let currentOscillator = null;
-        let currentGain = null;
-        let lastFingerCount = -1;
-        let lastMouthOpen = false;
+        let audioCtx, currentOscillator = null, currentGain = null;
+        let lastFingerCount = -1, lastMouthOpen = false;
 
         const noteMap = {
-            1: { name: "Dó", freq: 261.63 },
-            2: { name: "Ré", freq: 293.66 },
-            3: { name: "Mi", freq: 329.63 },
-            4: { name: "Fá", freq: 349.23 },
-            5: { name: "Sol", freq: 392.00 },
-            6: { name: "Lá", freq: 440.00 },
-            7: { name: "Si", freq: 493.88 },
-            8: { name: "Dó²", freq: 523.25 },
-            9: { name: "Ré²", freq: 587.33 },
-            10: { name: "Mi²", freq: 659.25 }
+            1: { name: "Dó", freq: 261.63 }, 2: { name: "Ré", freq: 293.66 },
+            3: { name: "Mi", freq: 329.63 }, 4: { name: "Fá", freq: 349.23 },
+            5: { name: "Sol", freq: 392.00 }, 6: { name: "Lá", freq: 440.00 },
+            7: { name: "Si", freq: 493.88 }, 8: { name: "Dó²", freq: 523.25 },
+            9: { name: "Ré²", freq: 587.33 }, 10: { name: "Mi²", freq: 659.25 }
         };
 
-        // Atualiza a porcentagem de texto dinamicamente
-        volumeSlider.addEventListener('input', () => {
-            if (volumeVal) {
-                volumeVal.innerText = volumeSlider.value + '%';
-            }
-        });
+        volumeSlider.addEventListener('input', () => { volumeVal.innerText = volumeSlider.value + '%'; });
 
         function updateUI(count) {
             fingerCountDisplay.innerText = count;
             keys.forEach(k => k.classList.remove('active'));
-            
             if (count > 0 && noteMap[count]) {
                 noteDisplay.innerText = noteMap[count].name;
-                const activeKey = document.querySelector(`.key[data-index="${count}"]`);
-                if (activeKey) activeKey.classList.add('active');
-            } else {
-                noteDisplay.innerText = "---";
-            }
+                const ak = document.querySelector(`.key[data-index="${count}"]`);
+                if (ak) ak.classList.add('active');
+            } else { noteDisplay.innerText = "---"; }
         }
 
         function playNote(fingers) {
             if (!audioCtx || !noteMap[fingers]) return;
-
             if (currentOscillator) {
-                try {
-                    currentOscillator.stop();
-                    currentOscillator.disconnect();
-                } catch(e) {}
+                try { currentOscillator.stop(); currentOscillator.disconnect(); } catch(e) {}
             }
-
             const pitchFactor = parseFloat(pitchSlider.value);
-            
             currentOscillator = audioCtx.createOscillator();
             currentGain = audioCtx.createGain();
-
             currentOscillator.type = 'triangle'; 
             currentOscillator.frequency.value = noteMap[fingers].freq * pitchFactor;
-
-            // Inicia mudo para ajuste posterior com a boca
             currentGain.gain.setValueAtTime(0, audioCtx.currentTime);
-
             currentOscillator.connect(currentGain);
             currentGain.connect(audioCtx.destination);
-
             currentOscillator.start();
             lastFingerCount = fingers;
             updateUI(fingers);
@@ -373,126 +277,64 @@
 
         function stopSound() {
             if (currentGain) {
-                currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2); // Fade rápido
-                let oldOsc = currentOscillator;
-                setTimeout(() => {
-                    if (oldOsc) {
-                        oldOsc.stop();
-                        oldOsc.disconnect();
-                    }
-                }, 300);
+                currentGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                let osc = currentOscillator;
+                setTimeout(() => { if (osc) { osc.stop(); osc.disconnect(); } }, 250);
             }
-            currentOscillator = null;
-            currentGain = null;
+            currentOscillator = null; currentGain = null;
         }
 
         function countFingers(landmarks) {
             let count = 0;
-            const tips = [8, 12, 16, 20];
-            const pips = [6, 10, 14, 18];
-
+            const tips = [8, 12, 16, 20], pips = [6, 10, 14, 18];
             for (let i = 0; i < tips.length; i++) {
                 if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
             }
-            
-            const thumbTip = landmarks[4];
-            const thumbBase = landmarks[2];
-            
-            if (Math.abs(thumbTip.x - thumbBase.x) > 0.06) {
-                if (thumbTip.y < landmarks[3].y) {
-                    count++;
-                }
-            }
+            const tTip = landmarks[4], tBase = landmarks[2];
+            if (Math.abs(tTip.x - tBase.x) > 0.06 && tTip.y < landmarks[3].y) count++;
             return count;
         }
 
-        // --- Modelos MediaPipe ---
-        const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        });
-        
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 0,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6
-        });
+        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 2, modelComplexity: 0, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
-        
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: false,
-            modelComplexity: 0
-        });
+        const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
+        faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, modelComplexity: 0 });
 
-        // Leitura de Mãos
         hands.onResults((results) => {
             let total = 0;
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                for (const landmarks of results.multiHandLandmarks) {
-                    total += countFingers(landmarks);
-                }
+            if (results.multiHandLandmarks) {
+                for (const lms of results.multiHandLandmarks) { total += countFingers(lms); }
                 total = Math.min(total, 10);
-                
                 if (total !== lastFingerCount && total > 0) {
                     lastFingerCount = total;
                     updateUI(total);
-                    
-                    // Se a boca estiver aberta, muda para a nota nova sem precisar reiniciar
-                    if (lastMouthOpen) {
-                        playNote(total);
-                    }
+                    if (lastMouthOpen) playNote(total);
                 }
             }
         });
 
-        // Leitura de Rosto
         faceMesh.onResults((results) => {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const face = results.multiFaceLandmarks[0];
-                const topLip = face[13];
-                const bottomLip = face[14];
-                const dist = Math.abs(topLip.y - bottomLip.y);
-                
-                // Limites para o cálculo do volume
-                const minOpen = 0.015; // Quase fechada
-                const maxOpen = 0.080; // Aberta
-                
-                let volumeRatio = (dist - minOpen) / (maxOpen - minOpen);
-                volumeRatio = Math.max(0, Math.min(0.35, volumeRatio)); 
-                
-                // Converte o valor do slider de porcentagem para o multiplicador
-                const sliderValue = parseFloat(volumeSlider.value) / 100;
-                let finalVolume = volumeRatio * sliderValue;
-
+                const dist = Math.abs(face[13].y - face[14].y);
+                const minO = 0.015, maxO = 0.080;
+                let volRatio = (dist - minO) / (maxO - minO);
+                volRatio = Math.max(0, Math.min(0.35, volRatio));
+                const finalVol = volRatio * (parseFloat(volumeSlider.value) / 100);
                 const isNowOpen = dist > 0.04;
-                
+
                 if (isNowOpen) {
-                    mouthStatusDisplay.innerText = `Aberta (${Math.round(finalVolume * 300)}%)`;
+                    mouthStatusDisplay.innerText = `Aberta (${Math.round(volRatio * 300)}%)`;
                     mouthStatusDisplay.style.color = "#50e3c2";
-
-                    // Se iniciou a abertura agora ou o som foi parado, toca o som
                     if (!lastMouthOpen || !currentOscillator) {
-                        if (lastFingerCount > 0) {
-                            playNote(lastFingerCount);
-                        }
+                        if (lastFingerCount > 0) playNote(lastFingerCount);
                     }
-
-                    // Controle dinâmico do volume
-                    if (currentGain) {
-                        currentGain.gain.setValueAtTime(finalVolume, audioCtx.currentTime);
-                    }
+                    if (currentGain) currentGain.gain.setValueAtTime(finalVol, audioCtx.currentTime);
                 } else {
                     mouthStatusDisplay.innerText = "Fechada";
                     mouthStatusDisplay.style.color = "#ff5252";
-
-                    // Para o som de vez quando a boca fecha
-                    if (lastMouthOpen) {
-                        stopSound();
-                    }
+                    if (lastMouthOpen) stopSound();
                 }
                 lastMouthOpen = isNowOpen;
             }
@@ -501,9 +343,7 @@
         startBtn.addEventListener('click', () => {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             startBtn.style.display = 'none';
-            
             const camera = new Camera(videoElement, {
-                onFrameRate: 30,
                 onFrame: async () => {
                     await hands.send({image: videoElement});
                     await faceMesh.send({image: videoElement});
@@ -514,5 +354,5 @@
         });
     </script>
 </body>
-    </html>
-    
+        </html>
+                           
