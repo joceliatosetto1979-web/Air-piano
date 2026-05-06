@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -202,7 +202,7 @@
         <h3>Como Jogar</h3>
         <ul>
             <li><strong>Tocar Nota:</strong> Mostre de 1 a 10 dedos (use as duas mãos).</li>
-            <li><strong>Som:</strong> Abra a boca para tocar o som e feche para parar.</li>
+            <li><strong>Som:</strong> Abra a boca para tocar o sol e fechei para parar.</li>
             <li><strong>Volume:</strong> Quanto mais você abrir a boca, mais alto o som fica.</li>
             <li><strong>Mudar Nota:</strong> Mude os dedos com a boca aberta para tocar outras notas.</li>
         </ul>
@@ -284,14 +284,24 @@
             currentOscillator = null; currentGain = null;
         }
 
+        // Otimização da distância dos dedos em relação ao pulso (funciona em qualquer posição)
         function countFingers(landmarks) {
             let count = 0;
-            const tips = [8, 12, 16, 20], pips = [6, 10, 14, 18];
+            const tips = [4, 8, 12, 16, 20];
+            const bases = [2, 5, 9, 13, 17];
+            const wrist = landmarks[0];
+
             for (let i = 0; i < tips.length; i++) {
-                if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
+                const tip = landmarks[tips[i]];
+                const base = landmarks[bases[i]];
+
+                const distTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+                const distBase = Math.hypot(base.x - wrist.x, base.y - wrist.y);
+
+                if (distTip > distBase + 0.015) {
+                    count++;
+                }
             }
-            const tTip = landmarks[4], tBase = landmarks[2];
-            if (Math.abs(tTip.x - tBase.x) > 0.06 && tTip.y < landmarks[3].y) count++;
             return count;
         }
 
@@ -355,4 +365,4 @@
     </script>
 </body>
         </html>
-                           
+            
